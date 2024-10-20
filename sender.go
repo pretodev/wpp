@@ -14,32 +14,32 @@ func (msg message) Data(phoneNumber string) map[string]any {
 	return msg
 }
 
-type Client struct {
+type Sender struct {
 	accessToken string
 	apiUrl      string
 }
 
-func NewClient(accessToken, phoneNumberID string) *Client {
-	return &Client{
+func NewSender(accessToken, phoneNumberID string) *Sender {
+	return &Sender{
 		accessToken: accessToken,
 		apiUrl:      fmt.Sprintf("https://graph.facebook.com/v20.0/%s/messages", phoneNumberID),
 	}
 }
 
-func (c *Client) sendRequest(data map[string]interface{}) (string, error) {
+func (s *Sender) sendRequest(data map[string]interface{}) (string, error) {
 	data["messaging_product"] = "whatsapp"
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal data: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", c.apiUrl, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", s.apiUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.accessToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.accessToken))
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -69,21 +69,16 @@ func (c *Client) sendRequest(data map[string]interface{}) (string, error) {
 	return string(responseData), nil
 }
 
-func (c *Client) SendMessage(phoneNumber string, msg message) error {
-	_, err := c.sendRequest(msg.Data(phoneNumber))
-	return err
-}
-
-func (c *Client) MarkMessageAsRead(messageID string) error {
+func (s *Sender) MarkMessageAsRead(messageID string) error {
 	data := map[string]interface{}{
 		"status":     "read",
 		"message_id": messageID,
 	}
-	_, err := c.sendRequest(data)
+	_, err := s.sendRequest(data)
 	return err
 }
 
-func (c *Client) ReactToMessage(phoneNumber, messageID, reaction string) error {
+func (s *Sender) ReactToMessage(phoneNumber, messageID, reaction string) error {
 	data := map[string]interface{}{
 		"message_id": messageID,
 		"to":         phoneNumber,
@@ -92,6 +87,6 @@ func (c *Client) ReactToMessage(phoneNumber, messageID, reaction string) error {
 			"emoji": reaction,
 		},
 	}
-	_, err := c.sendRequest(data)
+	_, err := s.sendRequest(data)
 	return err
 }

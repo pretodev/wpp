@@ -1,6 +1,6 @@
 package wpp
 
-func (c *Client) SendReplyButtons(phoneNumber, body string, buttons ReplyButtons, opts ...intrOpt) (string, error) {
+func (s *Sender) SendReplyButtons(phoneNumber, body string, buttons ReplyButtons, opts ...intrOpt) (string, error) {
 	btns := []map[string]any{
 		buttons.First.toMap(),
 	}
@@ -24,7 +24,7 @@ func (c *Client) SendReplyButtons(phoneNumber, body string, buttons ReplyButtons
 		opts...,
 	)
 
-	return c.sendRequest(intr.Data(phoneNumber))
+	return s.sendRequest(intr.Data(phoneNumber))
 }
 
 type ReplyButton struct {
