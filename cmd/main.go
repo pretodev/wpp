@@ -16,9 +16,21 @@ func showJson(str string) {
 	fmt.Println(string(prettyJSON))
 }
 
+type externalMessage struct {
+	Message string
+}
+
 func main() {
 	accessToken := os.Getenv("WHATSAPP_ACCESS_TOKEN")
 	phoneNumberID := os.Getenv("WHATSAPP_BUSINESS_PHONE_ID")
+
+	sender := wpp.NewSender(accessToken, phoneNumberID)
+
+	res, err := sender.SendText("5575983477473", "Ativo")
+	if err != nil {
+		panic(err)
+	}
+	showJson(res)
 
 	replyButtons := wpp.ReplyButtons{
 		First: wpp.ReplyButton{
@@ -28,10 +40,7 @@ func main() {
 	}
 
 	r := wpp.NewRecipient("1234", accessToken, phoneNumberID)
-
-	type externalMessage struct {
-		Message string
-	}
+	r.MarkToRead = true
 
 	r.HandleFunc(func(c wpp.Context) error {
 		if c.TextEqualFold("texto") {

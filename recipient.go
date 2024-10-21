@@ -13,6 +13,7 @@ type recipient struct {
 	sender      *Sender
 	verifyToken string
 	handlers    []Handler
+	MarkToRead  bool
 }
 
 func NewRecipient(verifyToken, accessToken, phoneNumberID string) *recipient {
@@ -30,7 +31,13 @@ func (rc *recipient) HandleFunc(handler Handler) {
 func (rc *recipient) reply(p payload) error {
 	msg, ok := p.message()
 	if !ok {
-		return fmt.Errorf("invalid payload message")
+		return nil
+	}
+
+	if rc.MarkToRead {
+		if err := rc.sender.MarkMessageAsRead(msg.ID); err != nil {
+			return err
+		}
 	}
 
 	c := &context{
