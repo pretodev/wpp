@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	wpp "github.com/listservices/wppclient"
@@ -17,14 +18,14 @@ func showJson(str string) {
 }
 
 func main() {
-	sender := wpp.NewSender(
-		os.Getenv("WHATSAPP_ACCESS_TOKEN"),
-		os.Getenv("WHATSAPP_BUSINESS_PHONE_ID"),
-	)
+	accessToken := os.Getenv("WHATSAPP_ACCESS_TOKEN")
+	phoneNumberID := os.Getenv("WHATSAPP_BUSINESS_PHONE_ID")
+
+	sender := wpp.NewSender(accessToken, phoneNumberID)
 
 	phoneNumber := "5575983477473"
 
-	resp, err := sender.SendText(phoneNumber, "Funcionou")
+	resp, err := sender.SendText(phoneNumber, "Pode enviar mensagem")
 	if err != nil {
 		log.Fatalf("failed to send whatsapp message: %v", err)
 	}
@@ -42,4 +43,29 @@ func main() {
 		log.Fatalf("failed to send whatsapp message: %v", err)
 	}
 	showJson(resp2)
+
+	r := wpp.NewRecipient("1234", accessToken, phoneNumberID)
+
+	r.HandleFunc(func(c wpp.Context) error {
+		if c.Text() == "oi" {
+			return c.SendText("Me diga seu nome")
+		}
+		return nil
+	})
+
+	r.HandleFunc(func(c wpp.Context) error {
+		if c.Text() == "Silas" {
+			return c.SendText("Bem vindo meu senhor e Salvador")
+		}
+
+		if c.Text() == "Vanessa" {
+			return c.SendText("A dona da raba mais linda")
+		}
+
+		return nil
+	})
+
+	http.HandleFunc("/whatsapp", r.HTTPHandler)
+
+	http.ListenAndServe(":8080", nil)
 }
