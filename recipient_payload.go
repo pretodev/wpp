@@ -19,8 +19,8 @@ type pricing struct {
 	Billable     bool   `json:"billable"`
 }
 
-// status struct
-type status struct {
+// payloadStatus struct
+type payloadStatus struct {
 	ID           string       `json:"id"`
 	Status       string       `json:"status"`
 	Timestamp    string       `json:"timestamp"`
@@ -95,7 +95,7 @@ type value struct {
 	Metadata         metadata         `json:"metadata"`
 	Contacts         []contact        `json:"contacts,omitempty"`
 	Messages         []payloadMessage `json:"messages,omitempty"`
-	Statuses         []status         `json:"statuses,omitempty"`
+	Statuses         []payloadStatus  `json:"statuses,omitempty"`
 }
 
 // change struct
@@ -142,6 +142,22 @@ func (wr *payload) message() (*payloadMessage, bool) {
 					msg.From = wr.phoneNumber()
 					return &msg, true
 				}
+			}
+		}
+	}
+	return nil, false
+}
+
+func (wr *payload) status() (*payloadStatus, bool) {
+	if wr.Object != "whatsapp_business_account" {
+		return nil, false
+	}
+	for _, entry := range wr.Entry {
+		for _, change := range entry.Changes {
+			if len(change.Value.Statuses) > 0 {
+				status := change.Value.Statuses[0]
+				status.RecipientID = wr.phoneNumber()
+				return &status, true
 			}
 		}
 	}
