@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -21,28 +20,12 @@ func main() {
 	accessToken := os.Getenv("WHATSAPP_ACCESS_TOKEN")
 	phoneNumberID := os.Getenv("WHATSAPP_BUSINESS_PHONE_ID")
 
-	sender := wpp.NewSender(accessToken, phoneNumberID)
-
-	phoneNumber := "5575983477473"
-
-	resp, err := sender.SendText(phoneNumber, "Pode enviar mensagem")
-	if err != nil {
-		log.Fatalf("failed to send whatsapp message: %v", err)
-	}
-	showJson(resp)
-
 	replyButtons := wpp.ReplyButtons{
 		First: wpp.ReplyButton{
 			ID:    "button_1",
 			Title: "Primeira opção",
 		},
 	}
-
-	resp2, err := sender.SendReplyButtons(phoneNumber, "Escolha uma opção", replyButtons, wpp.WithHeader("BUTTONS"))
-	if err != nil {
-		log.Fatalf("failed to send whatsapp message: %v", err)
-	}
-	showJson(resp2)
 
 	r := wpp.NewRecipient("1234", accessToken, phoneNumberID)
 
@@ -51,9 +34,16 @@ func main() {
 	}
 
 	r.HandleFunc(func(c wpp.Context) error {
-		if c.Text() == "oi" {
-			return c.SendText("Me diga seu nome")
+		if c.TextEqualFold("texto") {
+			return c.SendText("Mensagem de texto")
 		}
+		if c.TextEqualFold("buttons") {
+			return c.SendReplyButtons("Botões", replyButtons)
+		}
+		if c.TextEqualFold("cta") {
+			return c.SendCallToActionURL("Botão de ação", "Clique aqui", "https://google.com")
+		}
+
 		var data externalMessage
 		ex := c.ExternalData()
 		if ex == nil {
@@ -69,11 +59,9 @@ func main() {
 		if c.Text() == "Silas" {
 			return c.SendText("Bem vindo meu senhor e Salvador")
 		}
-
 		if c.Text() == "Vanessa" {
 			return c.SendText("A dona da raba mais linda")
 		}
-
 		return nil
 	})
 
