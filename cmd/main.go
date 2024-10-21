@@ -1,20 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
 
 	wpp "github.com/listservices/wppclient"
 )
-
-func showJson(str string) {
-	var data map[string]any
-	_ = json.Unmarshal([]byte(str), &data)
-	prettyJSON, _ := json.MarshalIndent(data, "", "  ")
-	fmt.Println(string(prettyJSON))
-}
 
 type externalMessage struct {
 	Message string
@@ -30,7 +22,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	showJson(res)
+
+	fmt.Println(res)
 
 	replyButtons := wpp.ReplyButtons{
 		First: wpp.ReplyButton{

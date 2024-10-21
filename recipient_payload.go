@@ -116,13 +116,13 @@ type external struct {
 	Destination string         `json:"destination"`
 }
 
-type payload struct {
+type payloadRecipient struct {
 	External *external `json:"external,omitempty"`
 	Object   string    `json:"object"`
 	Entry    []entry   `json:"entry,omitempty"`
 }
 
-func (wr *payload) message() (*payloadMessage, bool) {
+func (wr *payloadRecipient) message() (*payloadMessage, bool) {
 	if wr.Object == "external_data" {
 		msg := payloadMessage{
 			From: wr.External.Destination,
@@ -148,7 +148,7 @@ func (wr *payload) message() (*payloadMessage, bool) {
 	return nil, false
 }
 
-func (wr *payload) status() (*payloadStatus, bool) {
+func (wr *payloadRecipient) status() (*payloadStatus, bool) {
 	if wr.Object != "whatsapp_business_account" {
 		return nil, false
 	}
@@ -164,7 +164,7 @@ func (wr *payload) status() (*payloadStatus, bool) {
 	return nil, false
 }
 
-func (wr *payload) phoneNumber() string {
+func (wr *payloadRecipient) phoneNumber() string {
 	var phoneNumber string
 	for _, entry := range wr.Entry {
 		for _, change := range entry.Changes {

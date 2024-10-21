@@ -56,7 +56,7 @@ func (c *context) ExternalData() *ExternalData {
 	return c.message.ExternalData
 }
 
-func (c *context) send(fn func() (string, error)) error {
+func (c *context) send(fn func() (*SendRequestResult, error)) error {
 	if c.finish {
 		return nil
 	}
@@ -69,19 +69,19 @@ func (c *context) send(fn func() (string, error)) error {
 }
 
 func (c *context) SendText(text string, opts ...textOpt) error {
-	return c.send(func() (string, error) {
+	return c.send(func() (*SendRequestResult, error) {
 		return c.sender.SendText(c.PhoneNumber(), text, opts...)
 	})
 }
 
 func (c *context) SendReplyButtons(body string, buttons ReplyButtons, opts ...intrOpt) error {
-	return c.send(func() (string, error) {
+	return c.send(func() (*SendRequestResult, error) {
 		return c.sender.SendReplyButtons(c.PhoneNumber(), body, buttons, opts...)
 	})
 }
 
 func (c *context) SendCallToActionURL(body, displayText, URL string, opts ...intrOpt) error {
-	return c.send(func() (string, error) {
+	return c.send(func() (*SendRequestResult, error) {
 		return c.sender.SendCallToActionURL(c.PhoneNumber(), body, displayText, URL, opts...)
 	})
 }

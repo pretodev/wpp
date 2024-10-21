@@ -28,7 +28,7 @@ func (rc *recipient) HandleFunc(handler Handler) {
 	rc.handlers = append(rc.handlers, handler)
 }
 
-func (rc *recipient) reply(p payload) error {
+func (rc *recipient) reply(p payloadRecipient) error {
 	msg, ok := p.message()
 	if !ok {
 		return nil
@@ -81,7 +81,7 @@ func (rc *recipient) HTTPHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var p payload
+		var p payloadRecipient
 		if err := json.Unmarshal(body, &p); err != nil {
 			http.Error(w, fmt.Sprintf("invalid json request body: %v", err), http.StatusBadRequest)
 			return

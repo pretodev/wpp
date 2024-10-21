@@ -1,6 +1,6 @@
 package wpp
 
-func (s *Sender) SendReplyButtons(phoneNumber, body string, buttons ReplyButtons, opts ...intrOpt) (string, error) {
+func (s *Sender) SendReplyButtons(phoneNumber, body string, buttons ReplyButtons, opts ...intrOpt) (*SendRequestResult, error) {
 	btns := []map[string]any{
 		buttons.First.toMap(),
 	}

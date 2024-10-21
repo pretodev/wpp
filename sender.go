@@ -26,16 +26,21 @@ func NewSender(accessToken, phoneNumberID string) *Sender {
 	}
 }
 
-func (s *Sender) sendRequest(data map[string]interface{}) (string, error) {
+type SendRequestResult struct {
+	MessageId   string
+	PhoneNumber string
+}
+
+func (s *Sender) sendRequest(data map[string]interface{}) (*SendRequestResult, error) {
 	data["messaging_product"] = "whatsapp"
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal data: %w", err)
+		return nil, fmt.Errorf("failed to marshal data: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", s.apiUrl, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -44,29 +49,27 @@ func (s *Sender) sendRequest(data map[string]interface{}) (string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to send request: %w", err)
+		return nil, fmt.Errorf("failed to send request: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		var errResp map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&errResp); err == nil {
-			return "", fmt.Errorf("failed with status %d: %s", resp.StatusCode, errResp)
+			return nil, fmt.Errorf("failed with status %d: %s", resp.StatusCode, errResp)
 		}
-		return "", fmt.Errorf("failed with status %d", resp.StatusCode)
+		return nil, fmt.Errorf("failed with status %d", resp.StatusCode)
 	}
 
-	var result map[string]interface{}
+	var result payloadSenderResult
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
+		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	responseData, err := json.Marshal(result)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal response: %w", err)
-	}
-
-	return string(responseData), nil
+	return &SendRequestResult{
+		MessageId:   result.Messages[0].ID,
+		PhoneNumber: result.Contacts[0].WaID,
+	}, nil
 }
 
 func (s *Sender) MarkMessageAsRead(messageID string) error {

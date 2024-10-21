@@ -1,6 +1,6 @@
 package wpp
 
-func (s *Sender) SendCallToActionURL(phoneNumber, body, displayText, url string, opts ...intrOpt) (string, error) {
+func (s *Sender) SendCallToActionURL(phoneNumber, body, displayText, url string, opts ...intrOpt) (*SendRequestResult, error) {
 	intr := newintr("cta_url", body, map[string]any{
 		"action": map[string]any{
 			"name": "cta_url",
