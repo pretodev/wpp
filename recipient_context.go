@@ -1,9 +1,22 @@
 package wpp
 
+import "github.com/go-viper/mapstructure/v2"
+
+type ExternalData struct {
+	Data   map[string]any
+	Origin string
+}
+
+func (ed *ExternalData) Bind(v any) error {
+	return mapstructure.Decode(ed.Data, v)
+}
+
 type Context interface {
 	PhoneNumber() string
 
 	Text() string
+
+	ExternalData() *ExternalData
 
 	SendText(text string, opts ...textOpt) error
 
@@ -25,6 +38,10 @@ func (c *context) Text() string {
 		return ""
 	}
 	return c.message.Text.Body
+}
+
+func (c *context) ExternalData() *ExternalData {
+	return c.message.ExternalData
 }
 
 func (c *context) SendText(text string, opts ...textOpt) error {

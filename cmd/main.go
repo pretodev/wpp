@@ -46,11 +46,23 @@ func main() {
 
 	r := wpp.NewRecipient("1234", accessToken, phoneNumberID)
 
+	type externalMessage struct {
+		Message string
+	}
+
 	r.HandleFunc(func(c wpp.Context) error {
 		if c.Text() == "oi" {
 			return c.SendText("Me diga seu nome")
 		}
-		return nil
+		var data externalMessage
+		ex := c.ExternalData()
+		if ex == nil {
+			return nil
+		}
+		if err := ex.Bind(&data); err != nil {
+			return err
+		}
+		return c.SendText(data.Message)
 	})
 
 	r.HandleFunc(func(c wpp.Context) error {

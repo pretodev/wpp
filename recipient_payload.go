@@ -59,19 +59,17 @@ type payloadInteractive struct {
 	Type      string     `json:"type"`
 }
 
-type payloadExternal map[string]any
-
 // payloadMessage struct
 type payloadMessage struct {
 	Context      *contextRequest     `json:"context,omitempty"`
 	Location     *payloadLocation    `json:"location,omitempty"`
 	Interactive  *payloadInteractive `json:"interactive,omitempty"`
 	Text         *payloadText        `json:"text,omitempty"`
+	ExternalData *ExternalData       `json:"-"`
 	From         string              `json:"from"`
 	ID           string              `json:"id"`
 	Timestamp    string              `json:"timestamp"`
 	Type         string              `json:"type"`
-	ExternalData payload             `json:"external,omitempty"`
 }
 
 // profile struct
@@ -112,15 +110,28 @@ type entry struct {
 	Changes []change `json:"changes"`
 }
 
+type external struct {
+	Data        map[string]any `json:"data"`
+	Origin      string         `json:"origin"`
+	Destination string         `json:"destination"`
+}
+
 type payload struct {
-	ExternalData *payloadMessage `json:"external,omitempty"`
-	Object       string          `json:"object"`
-	Entry        []entry         `json:"entry,omitempty"`
+	External *external `json:"external,omitempty"`
+	Object   string    `json:"object"`
+	Entry    []entry   `json:"entry,omitempty"`
 }
 
 func (wr *payload) message() (*payloadMessage, bool) {
 	if wr.Object == "external_data" {
-		return wr.ExternalData, true
+		msg := payloadMessage{
+			From: wr.External.Destination,
+			ExternalData: &ExternalData{
+				Origin: wr.External.Origin,
+				Data:   wr.External.Data,
+			},
+		}
+		return &msg, true
 	}
 
 	if wr.Object == "whatsapp_business_account" {
