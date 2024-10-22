@@ -61,15 +61,22 @@ func (s *Sender) sendRequest(data map[string]interface{}) (*SendRequestResult, e
 		return nil, fmt.Errorf("failed with status %d", resp.StatusCode)
 	}
 
-	var result payloadSenderResult
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+	var payload payloadSenderResult
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return &SendRequestResult{
-		MessageId:   result.Messages[0].ID,
-		PhoneNumber: result.Contacts[0].WaID,
-	}, nil
+	result := &SendRequestResult{}
+
+	if len(payload.Contacts) > 0 {
+		result.PhoneNumber = payload.Contacts[0].WaID
+	}
+
+	if len(payload.Messages) > 0 {
+		result.MessageId = payload.Messages[0].ID
+	}
+
+	return result, nil
 }
 
 func (s *Sender) MarkMessageAsRead(messageID string) error {

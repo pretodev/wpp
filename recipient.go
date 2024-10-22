@@ -7,12 +7,20 @@ import (
 	"net/http"
 )
 
-type Handler func(c Context) error
+type Responder interface {
+	Send(c Context) error
+}
+
+type ResponseFunc func(c Context) error
+
+func (f ResponseFunc) Send(c Context) error {
+	return f(c)
+}
 
 type recipient struct {
 	sender      *Sender
 	verifyToken string
-	handlers    []Handler
+	responders  []Responder
 	MarkToRead  bool
 }
 
@@ -20,12 +28,16 @@ func NewRecipient(verifyToken, accessToken, phoneNumberID string) *recipient {
 	return &recipient{
 		verifyToken: verifyToken,
 		sender:      NewSender(accessToken, phoneNumberID),
-		handlers:    make([]Handler, 0),
+		responders:  make([]Responder, 0),
 	}
 }
 
-func (rc *recipient) HandleFunc(handler Handler) {
-	rc.handlers = append(rc.handlers, handler)
+func (rc *recipient) Reply(h Responder) {
+	rc.responders = append(rc.responders, h)
+}
+
+func (rc *recipient) ReplyFunc(h ResponseFunc) {
+	rc.responders = append(rc.responders, h)
 }
 
 func (rc *recipient) reply(p payloadRecipient) error {
@@ -46,8 +58,8 @@ func (rc *recipient) reply(p payloadRecipient) error {
 		finish:  false,
 	}
 
-	for _, h := range rc.handlers {
-		err := h(c)
+	for _, h := range rc.responders {
+		err := h.Send(c)
 		if err != nil {
 			fmt.Printf("handler failed: %v", err)
 			return err
@@ -60,7 +72,7 @@ func (rc *recipient) reply(p payloadRecipient) error {
 	return nil
 }
 
-func (rc *recipient) HTTPHandler(w http.ResponseWriter, r *http.Request) {
+func (rc *recipient) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		mode := r.URL.Query().Get("hub.mode")
 		token := r.URL.Query().Get("hub.verify_token")
