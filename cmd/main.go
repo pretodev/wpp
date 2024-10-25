@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	wpp "github.com/listservices/wppclient"
+	"github.com/pretodev/wpp"
 )
 
 type externalMessage struct {
@@ -54,7 +54,7 @@ func main() {
 
 	r := wpp.NewRecipient("1234", accessToken, phoneNumberID)
 
-	r.MarkToRead = true
+	r.EnableMarkRead()
 
 	r.Reply(&GenericResponder{
 		replyButtons: wpp.ReplyButtons{

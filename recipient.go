@@ -17,12 +17,24 @@ func (f ResponseFunc) Send(c Context) error {
 	return f(c)
 }
 
+func NewRecipient(verifyToken, accessToken, phoneNumberID string) Recipient {
+	return &recipient{
+		verifyToken: verifyToken,
+		sender:      NewSender(accessToken, phoneNumberID),
+		responders:  make([]Responder, 0),
+	}
+}
+
 type Recipient interface {
 	http.Handler
 
 	Reply(r Responder)
 
 	ReplyFunc(r ResponseFunc)
+
+	EnableMarkRead()
+
+	DisableMarkRead()
 }
 
 type recipient struct {
@@ -32,12 +44,12 @@ type recipient struct {
 	MarkToRead  bool
 }
 
-func NewRecipient(verifyToken, accessToken, phoneNumberID string) Recipient {
-	return &recipient{
-		verifyToken: verifyToken,
-		sender:      NewSender(accessToken, phoneNumberID),
-		responders:  make([]Responder, 0),
-	}
+func (rc *recipient) EnableMarkRead() {
+	rc.MarkToRead = true
+}
+
+func (rc *recipient) DisableMarkRead() {
+	rc.MarkToRead = false
 }
 
 func (rc *recipient) Reply(h Responder) {
