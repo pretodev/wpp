@@ -17,6 +17,14 @@ func (f ResponseFunc) Send(c Context) error {
 	return f(c)
 }
 
+type Recipient interface {
+	http.Handler
+
+	Reply(r Responder)
+
+	ReplyFunc(r ResponseFunc)
+}
+
 type recipient struct {
 	sender      *Sender
 	verifyToken string
@@ -24,7 +32,7 @@ type recipient struct {
 	MarkToRead  bool
 }
 
-func NewRecipient(verifyToken, accessToken, phoneNumberID string) *recipient {
+func NewRecipient(verifyToken, accessToken, phoneNumberID string) Recipient {
 	return &recipient{
 		verifyToken: verifyToken,
 		sender:      NewSender(accessToken, phoneNumberID),
