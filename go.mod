@@ -1,4 +1,4 @@
-module github.com/listservices/wppclient
+module github.com/pretodev/wpp
 
 go 1.23.1
 
