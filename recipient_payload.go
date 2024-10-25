@@ -36,6 +36,12 @@ type listReply struct {
 	Description string `json:"description"`
 }
 
+// buttonReply struct
+type buttonReply struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+}
+
 // contextRequest struct
 type contextRequest struct {
 	From string `json:"from"`
@@ -55,8 +61,9 @@ type payloadLocation struct {
 
 // payloadInteractive struct
 type payloadInteractive struct {
-	ListReply *listReply `json:"list_reply,omitempty"`
-	Type      string     `json:"type"`
+	ButtonReply *buttonReply `json:"button_reply,omitempty"`
+	ListReply   *listReply   `json:"list_reply,omitempty"`
+	Type        string       `json:"type"`
 }
 
 // payloadMessage struct

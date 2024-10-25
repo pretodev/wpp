@@ -24,6 +24,8 @@ type Context interface {
 
 	ExternalData() *ExternalData
 
+	ReplyButtonID() string
+
 	SendText(text string, opts ...textOpt) error
 
 	SendReplyButtons(body string, buttons ReplyButtons, opts ...intrOpt) error
@@ -54,6 +56,13 @@ func (c *context) TextEqualFold(str string) bool {
 
 func (c *context) ExternalData() *ExternalData {
 	return c.message.ExternalData
+}
+
+func (c *context) ReplyButtonID() string {
+	if c.message.Interactive == nil || c.message.Interactive.ButtonReply == nil {
+		return ""
+	}
+	return c.message.Interactive.ButtonReply.ID
 }
 
 func (c *context) send(fn func() (*SendRequestResult, error)) error {
