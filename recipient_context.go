@@ -34,7 +34,7 @@ type Context interface {
 }
 
 type context struct {
-	sender  *Sender
+	sender  Sender
 	message payloadMessage
 	finish  bool
 }

@@ -14,13 +14,21 @@ func (msg message) Data(phoneNumber string) map[string]any {
 	return msg
 }
 
-type Sender struct {
+type sender struct {
 	accessToken string
 	apiUrl      string
 }
 
-func NewSender(accessToken, phoneNumberID string) *Sender {
-	return &Sender{
+type Sender interface {
+	MarkMessageAsRead(messageID string) error
+	ReactToMessage(phoneNumber, messageID, reaction string) error
+	SendReplyButtons(phoneNumber, body string, buttons ReplyButtons, opts ...intrOpt) (*SendRequestResult, error)
+	SendText(phoneNumber string, text string, opts ...textOpt) (*SendRequestResult, error)
+	SendCallToActionURL(phoneNumber, body, displayText, url string, opts ...intrOpt) (*SendRequestResult, error)
+}
+
+func NewSender(accessToken, phoneNumberID string) Sender {
+	return &sender{
 		accessToken: accessToken,
 		apiUrl:      fmt.Sprintf("https://graph.facebook.com/v20.0/%s/messages", phoneNumberID),
 	}
@@ -31,7 +39,7 @@ type SendRequestResult struct {
 	PhoneNumber string
 }
 
-func (s *Sender) sendRequest(data map[string]interface{}) (*SendRequestResult, error) {
+func (s *sender) sendRequest(data map[string]interface{}) (*SendRequestResult, error) {
 	data["messaging_product"] = "whatsapp"
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -79,7 +87,7 @@ func (s *Sender) sendRequest(data map[string]interface{}) (*SendRequestResult, e
 	return result, nil
 }
 
-func (s *Sender) MarkMessageAsRead(messageID string) error {
+func (s *sender) MarkMessageAsRead(messageID string) error {
 	data := map[string]interface{}{
 		"status":     "read",
 		"message_id": messageID,
@@ -88,7 +96,7 @@ func (s *Sender) MarkMessageAsRead(messageID string) error {
 	return err
 }
 
-func (s *Sender) ReactToMessage(phoneNumber, messageID, reaction string) error {
+func (s *sender) ReactToMessage(phoneNumber, messageID, reaction string) error {
 	data := map[string]interface{}{
 		"message_id": messageID,
 		"to":         phoneNumber,

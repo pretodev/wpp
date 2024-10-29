@@ -18,7 +18,7 @@ func WithPreviewUrlDisabled() textOpt {
 	}
 }
 
-func (s *Sender) SendText(phoneNumber string, text string, opts ...textOpt) (*SendRequestResult, error) {
+func (s *sender) SendText(phoneNumber string, text string, opts ...textOpt) (*SendRequestResult, error) {
 	msg := message{
 		"type": "text",
 		"text": map[string]any{

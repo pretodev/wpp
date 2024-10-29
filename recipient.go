@@ -28,6 +28,8 @@ func NewRecipient(verifyToken, accessToken, phoneNumberID string) Recipient {
 type Recipient interface {
 	http.Handler
 
+	Sender() Sender
+
 	Reply(r Responder)
 
 	ReplyFunc(r ResponseFunc)
@@ -38,10 +40,14 @@ type Recipient interface {
 }
 
 type recipient struct {
-	sender      *Sender
+	sender      Sender
 	verifyToken string
 	responders  []Responder
 	MarkToRead  bool
+}
+
+func (rc *recipient) Sender() Sender {
+	return rc.sender
 }
 
 func (rc *recipient) EnableMarkRead() {
